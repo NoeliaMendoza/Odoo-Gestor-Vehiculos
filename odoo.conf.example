@@ -1,0 +1,8 @@
+[options]
+addons_path = C:\ruta\odoo-gestor_vehiculos\odoo-source\odoo\addons,C:\ruta\odoo-gestor_vehiculos\odoo-source\addons,C:\ruta\odoo-gestor_vehiculos\custom_addons
+db_host = 127.0.0.1
+db_port = 5433
+db_user = odoo
+db_password = REEMPLAZAR_POR_EL_VALOR_DE_POSTGRES_PASSWORD
+admin_passwd = REEMPLAZAR_POR_UNA_CONTRASENA_MAESTRA
+http_port = 8069

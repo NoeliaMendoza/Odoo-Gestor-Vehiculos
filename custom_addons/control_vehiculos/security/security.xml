@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+    <record model="ir.module.category" id="module_category_control_vehiculos">
+        <field name="name">Gestión de Vehículos</field>
+        <field name="description">Niveles de acceso para el gestor de vehículos.</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <!-- Driver Group -->
+    <record id="group_assignment_driver" model="res.groups">
+        <field name="name">Empleado: catálogo y solicitudes propias</field>
+        <field name="category_id" ref="module_category_control_vehiculos"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <!-- Sequence for Vehicle Usage -->
+    <record id="seq_vehicle_usage" model="ir.sequence">
+        <field name="name">Historial de Uso de Vehculos</field>
+        <field name="code">control.vehicle.assignment</field>
+        <field name="prefix">SOL-</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <!-- Security Rules -->
+    <record id="rule_assignment_company" model="ir.rule">
+        <field name="name">Asignaciones por compañía</field>
+        <field name="model_id" ref="model_control_vehicle_assignment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_maintenance_company" model="ir.rule">
+        <field name="name">Mantenimientos por compañía</field>
+        <field name="model_id" ref="model_control_vehicle_maintenance"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_document_company" model="ir.rule">
+        <field name="name">Documentos por compañía</field>
+        <field name="model_id" ref="model_control_vehicle_document"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_cost_company" model="ir.rule">
+        <field name="name">Costos por compañía</field>
+        <field name="model_id" ref="model_control_vehicle_cost"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_assignment_own" model="ir.rule">
+        <field name="name">Empleado: solo editar sus solicitudes</field>
+        <field name="model_id" ref="model_control_vehicle_assignment"/>
+        <field name="groups" eval="[(4,ref('group_assignment_driver'))]"/>
+        <field name="domain_force">[('requester_id','=',user.id)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_assignment_read_all" model="ir.rule">
+        <field name="name">Empleado: leer todas las solicitudes</field>
+        <field name="model_id" ref="model_control_vehicle_assignment"/>
+        <field name="groups" eval="[(4,ref('group_assignment_driver'))]"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Regla para que los empleados puedan ver el catálogo de vehículos (Bypass a la regla restrictiva de Odoo) -->
+    <record id="rule_vehicle_catalog_employee" model="ir.rule">
+        <field name="name">Empleado: Ver catálogo de vehículos</field>
+        <field name="model_id" ref="fleet.model_fleet_vehicle"/>
+        <field name="groups" eval="[(4,ref('group_assignment_driver'))]"/>
+        <!-- Permite ver todos los vehículos -->
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_assignment_manager" model="ir.rule">
+        <field name="name">Administrador: todos los permisos</field>
+        <field name="model_id" ref="model_control_vehicle_assignment"/>
+        <field name="groups" eval="[(4,ref('fleet.fleet_group_manager'))]"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+    </record>
+</odoo>

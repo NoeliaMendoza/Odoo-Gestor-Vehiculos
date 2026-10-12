@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="vehicle_ant_form" model="ir.ui.view">
+        <field name="name">fleet.vehicle.ant.form</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="vehicle_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="ANT · Matrícula y citaciones" name="ant" groups="fleet.fleet_group_manager">
+                    <field name="ant_plate_changed" invisible="1"/>
+                    <field name="ant_auto_sync"/>
+                    <field name="ant_sync_message" nolabel="1" invisible="not ant_sync_message"/>
+                    <div class="alert alert-info" invisible="ant_checked_at">Todavía no se ha consultado esta placa. Pulsa Consultar para obtener la ficha y las citaciones disponibles.</div>
+                    <div class="alert alert-warning" invisible="not ant_plate_changed">La placa cambió. Estos datos pertenecen a la placa consultada anteriormente; consulta la placa nueva antes de utilizarlos.</div>
+                    <group>
+                        <field name="ant_checked_plate"/>
+                        <field name="ant_checked_at"/>
+                    </group>
+                    <div invisible="not ant_checked_at">
+                        <div class="text-muted mb-3">Fuente: consulta pública de ANT. Refleja la última consulta realizada; no se actualiza automáticamente. La caducidad de matrícula es distinta del calendario anual de matriculación o de revisión técnica.</div>
+                        <group>
+                            <group string="Matrícula">
+                                <field name="ant_registration_year"/>
+                                <field name="ant_registration_date"/>
+                                <field name="ant_expiration_date"/>
+                            </group>
+                            <group string="Características registradas">
+                                <field name="ant_class"/>
+                                <field name="ant_service"/>
+                                <field name="ant_tint"/>
+                                <field name="ant_tint_expiration" invisible="not ant_tint_expiration"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group string="Citaciones por estado">
+                                <field name="ant_pending_count"/>
+                                <field name="ant_disputed_count"/>
+                                <field name="ant_agreement_count"/>
+                                <field name="ant_paid_count"/>
+                                <field name="ant_cancelled_count"/>
+                            </group>
+                            <group string="Estado de cuenta (USD)">
+                                <field name="ant_pending"/>
+                                <field name="ant_agreement"/>
+                                <field name="ant_interest"/>
+                                <field name="ant_remission"/>
+                                <field name="ant_ant"/>
+                                <field name="ant_total" class="fw-bold"/>
+                            </group>
+                        </group>
+                        <div class="text-muted mb-2">Las citaciones históricas no se atribuyen al conductor actual. El detalle se encuentra en Multas; la matrícula, en Documentos.</div>
+                        <button name="action_open_ant_fines" type="object" string="Ver en Multas" class="btn-secondary" context="{'search_default_vehicle_id': id, 'default_vehicle_id': id}"/>
+                        <button name="action_open_ant_documents" type="object" string="Ver en Documentos" class="btn-secondary ms-2" context="{'default_vehicle_id': id}"/>
+
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

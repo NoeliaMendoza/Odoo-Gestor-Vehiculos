@@ -1,0 +1,360 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+    <record id="view_vehicle_assignment_tree" model="ir.ui.view">
+        <field name="name">control.vehicle.assignment.tree</field>
+        <field name="model">control.vehicle.assignment</field>
+        <field name="arch" type="xml">
+            <list expand="1" string="Historial de uso del vehículo" js_class="vehicle_permission_list">
+                <field name="name" string="Permiso"/>
+                <field name="create_date" string="Fecha registro"/>
+                <field name="requester_id" string="Solicitante / Conductor"/>
+                <field name="destination" string="Destino"/>
+                <field name="purpose" string="Motivo"/>
+                <field name="checkout_km" string="Km salida"/>
+                <field name="checkin_km" string="Km entrada"/>
+                <field name="distance" string="Km recorridos"/>
+                <field name="state" widget="badge" decoration-muted="state == 'closed'" decoration-warning="state == 'pending'" decoration-primary="state == 'approved'" decoration-success="state == 'delivered'" decoration-info="state == 'returned'" string="Estado"/>
+            </list>
+        </field>
+    </record>
+        <record id="view_vehicle_inspection_line_tree" model="ir.ui.view">
+        <field name="name">control.vehicle.inspection.line.tree</field>
+        <field name="model">control.vehicle.inspection.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="is_ok" widget="boolean_toggle"/>
+                <field name="note"/>
+            </list>
+        </field>
+    </record>
+<record id="view_vehicle_assignment_form" model="ir.ui.view">
+        <field name="name">control.vehicle.assignment.form</field>
+        <field name="model">control.vehicle.assignment</field>
+        <field name="arch" type="xml">
+            <form string="Permiso de vehículo" class="o_assignment_form" js_class="vehicle_permission_form">
+                <header>
+                    <field name="can_review" invisible="1"/>
+                    <button name="action_approve" type="object" string="Dar Permiso / Aprobar" invisible="not can_review" class="btn-success" icon="fa-check" groups="fleet.fleet_group_manager"/>
+                    <button name="action_open_reject_wizard" type="object" string="Rechazar Solicitud" invisible="not can_review" class="btn-danger" icon="fa-times" groups="fleet.fleet_group_manager"/>
+                    <button name="action_deliver" type="object" string="Confirmar Salida (En Ruta)" invisible="state != 'approved'" class="btn-primary" icon="fa-key" groups="fleet.fleet_group_manager"/>
+                                        <button name="action_return" type="object" string="Registrar Devolución de Vehículo" invisible="state != 'delivered'" class="btn-success" icon="fa-undo" groups="fleet.fleet_group_manager"/>
+                    <button name="action_close" type="object" string="Cerrar Registro de Uso" invisible="state != 'returned'" class="btn-primary" icon="fa-lock" groups="fleet.fleet_group_manager"/>
+                    <button name="action_open_cancel_wizard" type="object" string="Cancelar" invisible="state not in ['pending','approved']"/>
+                    <button name="action_download_commitment" groups="fleet.fleet_group_manager" type="object" string="Acta de compromiso (PDF)" class="btn-secondary" icon="fa-file-pdf-o"/>
+                    <button name="action_download_usage_report" groups="fleet.fleet_group_manager" invisible="state not in ['returned', 'closed']" type="object" string="Reporte de uso (PDF)" class="btn-secondary" icon="fa-file-pdf-o"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,approved,delivered,returned,closed"/>
+                </header>
+                <sheet>
+                    <field name="company_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="new_damage" invisible="1"/>
+                    <field name="low_fuel" invisible="1"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                        <h2>
+                            <field name="vehicle_id" readonly="state != 'pending'" options="{'no_create': True}"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group string="Solicitud">
+                            <field name="requester_id" string="Solicitante / Conductor" readonly="state != 'pending'"/>
+                            <field name="operator_id" string="Encargado del despacho" readonly="1" force_save="1"/>
+
+
+                            <field name="destination" placeholder="Ej.: Planta Guayaquil / Cliente X" readonly="state != 'pending'"/>
+                            <field name="purpose" placeholder="Ej.: Entrega de documentación técnica" readonly="state != 'pending'"/>
+                        </group>
+                        <group string="Programación">
+                            <field name="requested_start" string="Fecha y hora de salida" readonly="state != 'pending'"/>
+                            <field name="requested_end" string="Fecha y hora de regreso estimado" readonly="state != 'pending'"/>
+                            <field name="create_date" string="Fecha de solicitud" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Entrega" groups="fleet.fleet_group_manager">
+                            <group>
+                                <group>
+                                    <field name="checkout_at" string="Hora de salida real" readonly="1" invisible="not checkout_at"/>
+                                    <field name="checkout_km" readonly="state != 'approved'"/>
+                                    <field name="checkout_fuel" string="Combustible Salida (%)" readonly="state != 'approved'" required="state == 'approved'" widget="vehicle_fuel_gauge"/>
+                                </group>
+                                <group string="Checklist del vehículo">
+                                    <field name="inspection_line_ids" nolabel="1" readonly="state != 'approved'">
+                                        <list editable="bottom" create="false" delete="false">
+                                            <field name="name" readonly="1"/>
+                                            <field name="is_ok" widget="boolean_toggle"/>
+                                            <field name="note"/>
+                                        </list>
+                                    </field>
+                                </group>
+                            </group>
+                            <group string="Observaciones">
+                                <field name="checkout_notes" placeholder="Observaciones de entrega…" readonly="state != 'approved'"/>
+                            </group>
+                        </page>
+                                                <page string="Fotos de entrega" name="checkout_photos" groups="fleet.fleet_group_manager">
+                            <div class="row">
+                                <div class="col-md-3 mb-3 text-center">
+                                    <strong>Frente</strong><br/>
+                                    <field name="checkout_photo_front" widget="image" options="{'size': [150, 150]}"/>
+                                </div>
+                                <div class="col-md-3 mb-3 text-center">
+                                    <strong>Lateral Izquierdo</strong><br/>
+                                    <field name="checkout_photo_left" widget="image" options="{'size': [150, 150]}"/>
+                                </div>
+                                <div class="col-md-3 mb-3 text-center">
+                                    <strong>Lateral Derecho</strong><br/>
+                                    <field name="checkout_photo_right" widget="image" options="{'size': [150, 150]}"/>
+                                </div>
+                                <div class="col-md-3 mb-3 text-center">
+                                    <strong>Parabrisas</strong><br/>
+                                    <field name="checkout_photo_glass" widget="image" options="{'size': [150, 150]}"/>
+                                </div>
+                            </div>
+                        </page>
+                        <page string="Devolución" invisible="state in ['pending','approved']" groups="fleet.fleet_group_manager">
+                            <div class="alert alert-warning mb-3" role="status" invisible="not low_fuel">
+                                Combustible entregado por debajo del 50 %.
+                            </div>
+                            <div class="alert alert-danger mb-3" role="status" invisible="not new_damage">
+                                Daño nuevo detectado respecto de la entrega: <field name="damage_summary" readonly="1"/>.
+                            </div>
+                            <group>
+                                <group>
+                                    <field name="checkin_at" string="Hora de regreso real" readonly="1" invisible="not checkin_at"/>
+                                    <field name="checkin_km" readonly="state != 'delivered'"/>
+                                    <field name="checkin_fuel" string="Combustible Regreso (%)" readonly="state != 'delivered'" required="state == 'delivered'" widget="vehicle_fuel_gauge"/>
+                                    <field name="distance" string="Km recorridos (calculado)" readonly="1"/>
+                                    <field name="duration" widget="float_time" string="Horas transcurridas" readonly="1"/>
+                                </group>
+                                <group string="Checklist del vehículo (Devolución)">
+                                    <field name="checkin_line_ids" nolabel="1" readonly="state != 'delivered'">
+                                        <list editable="bottom" create="false" delete="false">
+                                            <field name="name" readonly="1"/>
+                                            <field name="is_ok" widget="boolean_toggle"/>
+                                            <field name="note"/>
+                                        </list>
+                                    </field>
+                                </group>
+                            </group>
+                            <group string="Observaciones">
+                                <field name="checkin_notes" placeholder="Observaciones de devolución…" readonly="state != 'delivered'"/>
+                            </group>
+                        </page>
+                        <page string="Incidencias / Daños" invisible="state not in ['delivered','returned','closed']" groups="fleet.fleet_group_manager">
+                            <group>
+                                <field name="incident_description" placeholder="Describa el incidente, rasguño o avería si existiera…"/>
+                                <field name="incident_photo" widget="image" options="{'size': [250, 160]}"/>
+                                <field name="incident_driver_id" string="Conductor a cargo"/>
+                            </group>
+                            <group>
+                                <field name="incident_state"/>
+                                <field name="incident_estimated_cost" widget="monetary"/>
+                                <field name="incident_cost_confirmed"/>
+                                <field name="incident_actual_cost" widget="monetary" invisible="not incident_cost_confirmed"/>
+                            </group>
+                            <group string="Multas de Tránsito">
+                                <field name="fine_ids" nolabel="1" context="{'default_assignment_id': id, 'default_vehicle_id': vehicle_id, 'default_driver_id': driver_user_id}">
+                                    <list>
+                                        <field name="date"/>
+                                        <field name="name"/>
+                                        <field name="reason"/>
+                                        <field name="amount"/>
+                                        <field name="paid" widget="boolean_toggle"/>
+                                    </list>
+                                    <form string="Registrar Multa">
+                                        <sheet>
+                                            <div class="oe_title">
+                                                <h1><field name="name"/></h1>
+                                            </div>
+                                            <group>
+                                                <group>
+                                                    <field name="date"/>
+                                                    <field name="reason"/>
+                                                    <field name="amount"/>
+                                                </group>
+                                                <group>
+                                                    <field name="paid" widget="boolean_toggle"/>
+                                                    <field name="vehicle_id" invisible="1"/>
+                                                    <field name="assignment_id" invisible="1"/>
+                                                    <field name="driver_id" invisible="1"/>
+                                                </group>
+                                            </group>
+                                            <group>
+                                                <field name="notes" placeholder="Detalles adicionales sobre la multa..." nolabel="1" colspan="2"/>
+                                            </group>
+                                        </sheet>
+                                    </form>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+                    <group string="Detalles de Resolución" invisible="not decision_note and not cancellation_note">
+                        <field name="decision_by" invisible="not decision_note" readonly="1"/>
+                        <field name="decision_at" invisible="not decision_note" readonly="1"/>
+                        <field name="decision_note" invisible="not decision_note" readonly="1"/>
+                        <field name="cancellation_note" invisible="not cancellation_note" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- KANBAN VIEW FOR APPROVALS -->
+    <record id="view_vehicle_assignment_kanban" model="ir.ui.view">
+        <field name="name">control.vehicle.assignment.kanban</field>
+        <field name="model">control.vehicle.assignment</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_mobile" sample="1" group_create="false" group_edit="false" group_delete="false">
+                <field name="can_review"/>
+                <field name="name"/>
+                <field name="requester_id"/>
+                <field name="requested_start"/>
+                <field name="requested_end"/>
+                <field name="vehicle_id"/>
+                <field name="destination"/>
+                <field name="purpose"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click_edit oe_semantic_html_override oe_kanban_card">
+                            <div class="o_kanban_record_top mb-2 d-flex justify-content-between align-items-center">
+                                <div class="o_kanban_record_headings text-truncate">
+                                    <strong class="o_kanban_record_title fs-5">
+                                        <field name="requester_id"/>
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_title_right">
+                                    <field name="state" widget="label_selection" options="{'classes': {'pending': 'warning', 'approved': 'success', 'rejected': 'danger'}}"/>
+                                </div>
+                            </div>
+
+                            <div class="o_kanban_record_body">
+                                <div class="mb-2 d-flex align-items-center text-truncate" title="Vehículo">
+                                    <i class="fa fa-car me-2 text-muted"/>
+                                    <span class="text-primary fw-bold"><field name="vehicle_id"/></span>
+                                </div>
+
+                                <div class="p-2 mb-2" style="background-color: #f8f9fa; border-radius: 4px; border: 1px solid #e2e8f0;">
+                                    <div class="row g-0">
+                                        <div class="col-6">
+                                            <small class="text-muted d-block" style="font-size: 10px; text-transform: uppercase;">Salida</small>
+                                            <div class="text-truncate fw-bold"><field name="requested_start"/></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted d-block" style="font-size: 10px; text-transform: uppercase;">Regreso</small>
+                                            <div class="text-truncate fw-bold"><field name="requested_end"/></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-1 d-flex align-items-start">
+                                    <i class="fa fa-map-marker me-2 mt-1 text-muted" style="width: 14px; text-align: center;" title="Destino"/>
+                                    <div class="text-truncate">
+                                        <span class="text-muted me-1">Destino:</span><field name="destination"/>
+                                    </div>
+                                </div>
+                                <div class="mb-3 d-flex align-items-start">
+                                    <i class="fa fa-info-circle me-2 mt-1 text-muted" style="width: 14px; text-align: center;" title="Motivo"/>
+                                    <div class="text-truncate">
+                                        <span class="text-muted me-1">Motivo:</span><field name="purpose"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="o_kanban_record_bottom d-flex" t-if="record.can_review.raw_value">
+                                <div class="w-50 pe-1">
+                                    <button name="action_approve" type="object" class="btn btn-outline-success w-100" groups="fleet.fleet_group_manager">
+                                        <i class="fa fa-check"/> Aprobar
+                                    </button>
+                                </div>
+                                <div class="w-50 ps-1">
+                                    <button name="action_open_reject_wizard" type="object" class="btn btn-outline-danger w-100" groups="fleet.fleet_group_manager">
+                                        <i class="fa fa-times"/> Rechazar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_vehicle_assignment_search" model="ir.ui.view">
+        <field name="name">control.vehicle.assignment.search</field>
+        <field name="model">control.vehicle.assignment</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Solicitudes y Permisos">
+                <field name="vehicle_id" string="Vehículo"/>
+                <field name="requester_id" string="Conductor / Empleado"/>
+                <field name="destination" string="Destino"/>
+                <filter name="pending" string="Por Aprobar" domain="[('state', '=', 'pending')]"/>
+                                <filter name="in_use" string="En Uso / Entregados" domain="[('state', 'in', ['approved', 'delivered'])]"/>
+                <filter name="returned" string="Devueltos" domain="[('state', '=', 'returned')]"/>
+                <filter name="closed" string="Cerrados" domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Vehículo" name="group_by_vehicle" context="{'group_by':'vehicle_id'}"/>
+                    <filter string="Empleado (Solicitante)" name="group_by_requester" context="{'group_by':'requester_id'}"/>
+                    <filter string="Estado" name="group_by_state" context="{'group_by':'state'}"/>
+                </group>
+                <filter name="my_requests" string="Mis Solicitudes" domain="[('requester_id', '=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_vehicle_assignment_calendar" model="ir.ui.view">
+        <field name="name">control.vehicle.assignment.calendar</field>
+        <field name="model">control.vehicle.assignment</field>
+        <field name="arch" type="xml">
+            <calendar string="Ocupación de Vehículos" date_start="requested_start" date_stop="requested_end" color="state" mode="month" event_open_popup="True" quick_create="False">
+                <field name="vehicle_id" avatar_field="image_128"/>
+                <field name="requester_id"/>
+                <field name="destination"/>
+                <field name="state" filters="1" invisible="1"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="action_vehicle_usage" model="ir.actions.act_window">
+        <field name="name">Aprobaciones</field>
+        <field name="res_model">control.vehicle.assignment</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_group_by_vehicle': 1, 'expand': 1}</field>
+        <field name="search_view_id" ref="view_vehicle_assignment_search"/>
+    </record>
+    <!-- Action for Employees: only their own requests -->
+    <record id="action_my_requests" model="ir.actions.act_window">
+        <field name="name">Mis Solicitudes</field>
+        <field name="res_model">control.vehicle.assignment</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('requester_id', '=', uid)]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="view_vehicle_assignment_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No tienes solicitudes de vehículo</p>
+            <p>Ve al catálogo de Vehículos y haz clic en "Solicitar uso de vehículo" para crear una.</p>
+        </field>
+    </record>
+    <record id="view_usage_reason_wizard" model="ir.ui.view">
+        <field name="name">usage.reason.wizard</field>
+        <field name="model">control.vehicle.usage.reason.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="reason" placeholder="Escribe el motivo aqui..." nolabel="1"/>
+                    <field name="usage_id" invisible="1"/>
+                    <field name="action_type" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirmar" class="btn-primary"/>
+                    <button special="cancel" string="Descartar" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,22 @@
+.o_list_view .o_list_table {
+    tr.text-success > td {
+        background-color: #d4edda !important;
+        color: #155724 !important;
+    }
+    tr.text-warning > td {
+        background-color: #fff3cd !important;
+        color: #856404 !important;
+    }
+    tr.text-info > td {
+        background-color: #d1ecf1 !important;
+        color: #0c5460 !important;
+    }
+    tr.text-primary > td {
+        background-color: #cce5ff !important;
+        color: #004085 !important;
+    }
+    tr.text-muted > td {
+        background-color: #e2e3e5 !important;
+        color: #383d41 !important;
+    }
+}

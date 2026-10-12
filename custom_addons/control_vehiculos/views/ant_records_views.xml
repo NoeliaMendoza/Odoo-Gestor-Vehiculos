@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="document_ant_form" model="ir.ui.view">
+        <field name="name">control.vehicle.document.ant.form</field>
+        <field name="model">control.vehicle.document</field>
+        <field name="inherit_id" ref="view_vehicle_document_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Origen ANT" invisible="not ant_plate">
+                    <field name="ant_plate"/>
+                    <field name="ant_checked_at"/>
+                    <div class="text-muted">Consulta del vehículo: se actualizan los datos de matrícula. El archivo se adjunta manualmente.</div>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='vehicle_id']" position="attributes"><attribute name="readonly">ant_plate != False</attribute></xpath>
+            <xpath expr="//field[@name='document_type']" position="attributes"><attribute name="readonly">ant_plate != False</attribute></xpath>
+            <xpath expr="//field[@name='name']" position="attributes"><attribute name="readonly">ant_plate != False</attribute></xpath>
+            <xpath expr="//field[@name='issue_date']" position="attributes"><attribute name="readonly">ant_plate != False</attribute></xpath>
+            <xpath expr="//field[@name='expiration_date']" position="attributes"><attribute name="readonly">ant_plate != False</attribute></xpath>
+            <xpath expr="//div[contains(@class,'alert-danger')]" position="replace">
+                <div class="alert alert-danger" invisible="state != 'expired'">Documento vencido. Para una matrícula ANT, consulta nuevamente la placa después de renovarla; para documentos manuales, actualiza sus fechas y el archivo.</div>
+            </xpath>
+        </field>
+    </record>
+    <record id="document_ant_list" model="ir.ui.view">
+        <field name="name">control.vehicle.document.ant.list</field>
+        <field name="model">control.vehicle.document</field>
+        <field name="inherit_id" ref="view_vehicle_document_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after"><field name="ant_plate" optional="show"/><field name="ant_checked_at" optional="hide"/></xpath>
+        </field>
+    </record>
+    <record id="fine_ant_form" model="ir.ui.view">
+        <field name="name">control.vehicle.fine.ant.form</field>
+        <field name="model">control.vehicle.fine</field>
+        <field name="inherit_id" ref="view_vehicle_fine_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <field name="ant_citation_id" invisible="1"/>
+                <group string="Información de ANT" invisible="not ant_citation_id">
+                    <div class="alert alert-info">La fecha corresponde a la emisión informada por ANT. No se asigna automáticamente un responsable a una citación histórica. El estado y los importes se actualizan desde la ficha del vehículo.</div>
+                    <group><field name="fine_status" widget="badge"/><field name="ant_entity"/><field name="ant_notified_at"/><field name="ant_checked_at"/><field name="ant_in_last_query"/></group>
+                    <group><field name="ant_sanction"/><field name="ant_penalty"/><field name="ant_remission"/><field name="ant_points"/></group>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='vehicle_id']" position="attributes"><attribute name="readonly">ant_citation_id != False</attribute></xpath>
+            <xpath expr="//field[@name='date']" position="attributes"><attribute name="readonly">ant_citation_id != False</attribute><attribute name="string">Fecha registrada / emisión ANT</attribute></xpath>
+            <xpath expr="//field[@name='reason']" position="attributes"><attribute name="readonly">ant_citation_id != False</attribute></xpath>
+            <xpath expr="//field[@name='amount']" position="attributes"><attribute name="readonly">ant_citation_id != False</attribute><attribute name="string">Monto / saldo ANT (USD)</attribute></xpath>
+            <xpath expr="//field[@name='paid']" position="attributes"><attribute name="invisible">ant_citation_id != False</attribute></xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Sequence for Vehicle Fines -->
+        <record id="seq_vehicle_fine" model="ir.sequence">
+            <field name="name">Multas de Vehículos</field>
+            <field name="code">control.vehicle.fine</field>
+            <field name="prefix">MULTA-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+
+    <data noupdate="1">
+        <!-- Cron diario: recordatorios de llaves (entrega y devolucion) -->
+        <record id="cron_key_reminders" model="ir.cron">
+            <field name="name">Recordatorio: llaves pendientes de entrega/devolucion</field>
+            <field name="model_id" ref="control_vehiculos.model_control_vehicle_assignment"/>
+            <field name="state">code</field>
+            <field name="code">model.action_cron_key_reminders()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- Cron semanal: resumen de multas pendientes de pago -->
+        <record id="cron_fine_reminders" model="ir.cron">
+            <field name="name">Resumen semanal: multas pendientes de pago</field>
+            <field name="model_id" ref="control_vehiculos.model_control_vehicle_fine"/>
+            <field name="state">code</field>
+            <field name="code">model.action_cron_fine_reminders()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">weeks</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- Cron diario: alertas de documentos por vencer o vencidos -->
+        <record id="cron_document_alerts" model="ir.cron">
+            <field name="name">Alertas diarias: documentos por vencer o vencidos</field>
+            <field name="model_id" ref="control_vehiculos.model_control_vehicle_document"/>
+            <field name="state">code</field>
+            <field name="code">model.action_cron_document_alerts()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>

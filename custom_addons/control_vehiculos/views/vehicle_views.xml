@@ -1,0 +1,362 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+    <!-- Simple model creation view -->
+    <record id="vehicle_model_simple_form" model="ir.ui.view">
+        <field name="name">control.vehicle.model.simple.form</field>
+        <field name="model">fleet.vehicle.model</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <form string="Crear modelo">
+                <sheet>
+                    <group>
+                        <field name="name" string="Nombre del modelo" placeholder="Ej.: Hiace"/>
+                        <field name="brand_id" string="Marca / Fabricante" placeholder="Ej.: Toyota"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Main Vehicle Form View -->
+    <record id="vehicle_form" model="ir.ui.view">
+        <field name="name">control.vehicle.form</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="arch" type="xml">
+            <form string="Ficha del Vehículo" js_class="control_vehicle_form" class="o_control_vehicle_form">
+                <header>
+                    <button name="action_decommission_vehicle" type="object" string="Dar de Baja" class="btn-danger" confirm="¿Estás seguro de que deseas dar de baja este vehículo? Se ocultará de la lista de vehículos activos." groups="fleet.fleet_group_manager"/>
+                    <button string="Solicitar uso de vehículo" name="action_open_request_usage_wizard" type="object" class="btn-success" icon="fa-key" invisible="control_condition != 'enabled'"/>
+                    <field name="control_condition" widget="statusbar" statusbar_visible="enabled,maintenance,disabled"/>
+                </header>
+                <sheet>
+
+                    <field name="company_id" invisible="1"/>
+                    <field name="active" invisible="1"/>
+                    <widget name="web_ribbon" title="Archivado" bg_color="bg-danger" invisible="active"/>
+                    <!-- Critical Alert Banner -->
+                    <div class="alert alert-warning d-flex align-items-center mb-3" role="alert" invisible="not has_critical_alerts">
+                        <i class="fa fa-exclamation-triangle fa-2x me-3" role="img" aria-label="Alerta" title="Alerta"/>
+                        <div>
+                            <strong>Alertas requeridas para este vehículo:</strong>
+                            <br/>
+                            <field name="critical_alert_text" readonly="1"/>
+                        </div>
+                    </div>
+                    <!-- Image Avatar (Odoo Native Standard) -->
+                    <field name="control_photo" widget="image" class="oe_avatar" options="{'zoom': True, 'preview_image': 'control_photo', 'accepted_file_extensions': 'image/jpeg,image/png,image/webp'}"/>
+                    <!-- Header Title -->
+                    <div class="oe_title">
+                        <label for="license_plate" string="Placa"/>
+                        <h1>
+                            <div class="d-flex align-items-center">
+                                <field name="license_plate" placeholder="Ej.: ABC-1234" required="1"/>
+                                <button name="action_consult_ant" type="object" string="Consultar" icon="fa-search" class="btn-primary ms-2 text-nowrap" title="Consultar datos, matrícula y citaciones en ANT" groups="fleet.fleet_group_manager" confirm="Se actualizarán marca, modelo, año, color y datos ANT con la información publicada para esta placa. ¿Continuar?"/>
+                            </div>
+                        </h1>
+                        <div class="h4 text-muted mb-2">
+                            <field name="brand_id" placeholder="Marca" class="oe_inline"/>
+                            <field name="model_id" placeholder="Modelo" class="oe_inline" options="{'no_quick_create': True}" context="{'form_view_ref': 'control_vehiculos.vehicle_model_simple_form'}"/>
+                            <span> · </span>
+                            <field name="model_year" placeholder="Año" class="oe_inline"/>
+                        </div>
+                    </div>
+                    <group>
+                        <group string="Matrícula (ANT)" groups="fleet.fleet_group_manager">
+                            <field name="ant_registration_date" string="Fecha de matrícula"/>
+                            <field name="ant_expiration_date" string="Fecha de caducidad"/>
+                            <div class="text-muted" invisible="ant_expiration_date">Consulta la placa para obtener la caducidad informada por ANT.</div>
+                            <div class="text-warning" invisible="not ant_plate_changed">La placa cambió. Vuelve a consultar para actualizar estas fechas.</div>
+                        </group>
+                        <group string="Información Principal">
+                            <field name="control_type" string="Tipo de vehículo"/>
+                            <field name="fuel_type" string="Tipo de combustible"/>
+                            <label for="odometer" string="Kilometraje"/>
+                            <div class="o_row">
+                                <field name="odometer" required="1"/>
+                                <field name="odometer_unit"/>
+                            </div>
+                        </group>
+                        <group string="Encargado y Disponibilidad">
+                            <field name="driver_id" string="Encargado del vehículo" options="{'no_create': True}"/>
+                            <field name="department_name" string="Departamento / Área"/>
+                            <field name="assignment_status" string="Estado de disponibilidad" widget="badge" decoration-success="assignment_status == 'available'" decoration-info="assignment_status == 'assigned'"/>
+                        </group>
+                    </group>
+                    <!-- 5 Integrated Tabs Notebook -->
+                    <notebook class="mt-4">
+                        <!-- TAB 1: GENERAL -->
+                        <page string="General" name="general">
+                            <group>
+                                <group string="Datos Técnicos">
+                                    <field name="color" string="Color" placeholder="Ej.: Blanco"/>
+                                    <field name="vin_sn" string="Número de chasis / VIN"/>
+                                    <field name="engine_sn" string="Número de motor"/>
+                                    <field name="seats" string="Número de asientos"/>
+                                </group>
+                            </group>
+                            <group string="Observaciones generales">
+                                <field name="control_notes" placeholder="Detalles de carrocería, accesorios instalados, notas adicionales..." nolabel="1"/>
+                            </group>
+                        </page>
+                        <!-- TAB 2: MANTENIMIENTO (solo admin) -->
+                        <page string="Mantenimiento" name="maintenance" groups="fleet.fleet_group_manager">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="mb-0">Mantenimientos del Vehículo</h4>
+                            </div>
+                            <field name="maintenance_ids" context="{'default_vehicle_id': id}">
+                                <list string="Mantenimientos" decoration-danger="is_overdue" decoration-muted="state == 'cancelled'">
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="maintenance_type" widget="badge"/>
+                                    <field name="workshop"/>
+                                    <field name="last_km"/>
+                                    <field name="next_km"/>
+                                    <field name="remaining_km" string="Km faltante"/>
+                                    <field name="progress_pct" widget="progressbar" string="Avance %"/>
+                                    <field name="cost" widget="monetary"/>
+                                    <field name="is_overdue" invisible="1"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'done'" decoration-warning="state in ['scheduled','in_progress']" decoration-danger="is_overdue"/>
+                                </list>
+                            </field>
+                        </page>
+                        <!-- TAB 3: DOCUMENTOS (solo admin) -->
+                        <page string="Documentos" name="documents" groups="fleet.fleet_group_manager">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="mb-0">Documentos del Vehículo (Matrícula, Seguro, RTV, Permisos)</h4>
+                            </div>
+                            <field name="document_ids" context="{'default_vehicle_id': id}">
+                                <list string="Documentos" decoration-danger="state == 'expired'" decoration-warning="state == 'expiring'" decoration-success="state == 'valid'">
+                                    <field name="document_type" widget="badge"/>
+                                    <field name="name"/>
+                                    <field name="issue_date"/>
+                                    <field name="expiration_date"/>
+                                    <field name="days_to_expire" string="Días restantes"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'valid'" decoration-warning="state == 'expiring'" decoration-danger="state == 'expired'"/>
+                                    <field name="file_name" invisible="1"/>
+                                    <field name="document_file" widget="binary" filename="file_name" string="Archivo"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Multas" name="fines" groups="fleet.fleet_group_manager">
+                            <p class="text-muted">Multas de este vehículo, incluidas las pagadas y anuladas. Para actualizar las citaciones de ANT, pulsa Consultar en la parte superior de la ficha.</p>
+                            <field name="fine_ids" readonly="1" nolabel="1" context="{'default_vehicle_id': id, 'form_view_ref': 'control_vehiculos.view_vehicle_fine_form'}">
+                                <list string="Multas del vehículo" create="0" edit="0" delete="0" decoration-danger="pending_payment" decoration-success="fine_status == 'paid'" decoration-muted="fine_status == 'cancelled'">
+                                    <field name="pending_payment" column_invisible="1"/>
+                                    <field name="fine_status" widget="badge" string="Estado" decoration-danger="fine_status == 'pending'" decoration-success="fine_status == 'paid'" decoration-muted="fine_status == 'cancelled'" decoration-warning="fine_status in ['disputed', 'agreement']"/>
+                                    <field name="date" string="Fecha / emisión ANT"/>
+                                    <field name="name" string="Referencia"/>
+                                    <field name="ant_citation_id" string="Citación ANT" options="{'no_open': True}" optional="hide"/>
+                                    <field name="ant_entity" string="Entidad" optional="show"/>
+                                    <field name="reason" string="Infracción"/>
+                                    <field name="amount" string="Monto / saldo ANT (USD)"/>
+                                    <field name="ant_sanction" optional="hide"/>
+                                    <field name="ant_penalty" optional="hide"/>
+                                    <field name="ant_remission" optional="hide"/>
+                                    <field name="ant_checked_at" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <!-- TAB 4: HISTORIAL DE USO -->
+                        <page string="Historial de uso" name="usage">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="mb-0">Registros de Recorridos y Solicitudes</h4>
+                            </div>
+                            <field name="usage_ids" context="{'default_vehicle_id': id}">
+                                <list string="Historial de uso" decoration-muted="state in ['cancelled','rejected']">
+                                    <field name="name"/>
+                                    <field name="create_date" string="Fecha"/>
+                                    <field name="requester_id" string="Conductor"/>
+                                    <field name="destination"/>
+                                    <field name="checkout_km" string="Km salida"/>
+                                    <field name="checkin_km" string="Km regreso"/>
+                                    <field name="distance" string="Km recorridos"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'closed'" decoration-warning="state == 'pending'" decoration-info="state in ['approved','delivered','returned']"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                    <group string="Aprobación de permisos" groups="fleet.fleet_group_manager">
+                        <field name="manager_id" string="Administrador de permisos" options="{'no_create':True}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Compact List View -->
+    <record id="vehicle_tree" model="ir.ui.view">
+        <field name="name">control.vehicle.tree</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="arch" type="xml">
+            <list string="Vehículos" decoration-danger="has_critical_alerts">
+                <field name="license_plate" string="Placa"/>
+                <field name="brand_id" string="Marca"/>
+                <field name="model_id" string="Modelo"/>
+                <field name="control_type" string="Tipo"/>
+                <field name="driver_id" string="Responsable general"/>
+                <field name="odometer" string="Kilometraje"/>
+                <field name="control_condition" widget="badge" decoration-success="control_condition == 'enabled'" decoration-warning="control_condition == 'maintenance'" decoration-danger="control_condition == 'disabled'"/>
+                <field name="has_critical_alerts" column_invisible="1"/>
+                <field name="critical_alert_text" string="Alertas"/>
+            </list>
+        </field>
+    </record>
+    <!-- Compact Kanban View -->
+    <record id="vehicle_kanban" model="ir.ui.view">
+        <field name="name">control.vehicle.kanban</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="arch" type="xml">
+            <kanban quick_create="false" records_draggable="false">
+                <field name="id"/>
+                <field name="control_photo"/>
+                <field name="control_condition"/>
+                <field name="assignment_status"/>
+                <field name="has_critical_alerts"/>
+                <field name="critical_alert_text"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click d-flex flex-column p-3 mb-2" style="min-width:260px; flex:1; border-radius:8px; border: 1px solid #e2e8f0; background:#fff;">
+                                                        <div class="o_control_vehicle_card_photo position-relative bg-light d-flex align-items-center justify-content-center mb-2" style="height:140px; overflow:hidden; border-radius:6px;">
+                                <div class="position-absolute top-0 end-0 m-2" style="z-index: 10;">
+                                    <span t-if="record.assignment_status.raw_value == 'assigned'" class="badge text-bg-info shadow-sm">Ocupado</span>
+                                    <span t-elif="record.control_condition.raw_value == 'enabled'" class="badge text-bg-success shadow-sm">Disponible</span>
+                                    <span t-elif="record.control_condition.raw_value == 'maintenance'" class="badge text-bg-warning shadow-sm">En mantenimiento</span>
+                                    <span t-elif="record.control_condition.raw_value == 'disabled'" class="badge text-bg-danger shadow-sm">Fuera de servicio</span>
+                                </div>
+                                <field name="control_photo" widget="image" t-if="record.control_photo.raw_value" options="{'img_class': 'object-fit-cover w-100 h-100'}" class="w-100 h-100"/>
+                                <span t-else="" class="text-muted">
+                                    <i class="fa fa-car fa-3x" role="img" aria-label="Sin foto" title="Sin foto"/>
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong class="h5 mb-0">
+                                        <field name="model_id"/>
+                                    </strong>
+                                    <div class="text-muted small">
+                                        <field name="license_plate"/> · <field name="control_type"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-muted small mt-2">
+                                <i class="fa fa-tachometer me-1" title="Odómetro"/>
+                                <field name="odometer"/>
+                                <field name="odometer_unit"/>
+                                <span class="ms-2" t-if="record.driver_id.raw_value">
+                                    <i class="fa fa-user me-1" title="Responsable"/>
+                                    <field name="driver_id"/>
+                                </span>
+                            </div>
+                            <div t-if="record.has_critical_alerts.raw_value" class="mt-2 text-danger small font-weight-bold">
+                                <field name="critical_alert_text"/>
+                            </div>
+
+                            <!-- Botón para Solicitar Vehículo desde la tarjeta -->
+                            <div class="mt-auto pt-3">
+                                <button name="action_open_request_usage_wizard" type="object" class="btn btn-primary btn-sm w-100" t-if="record.control_condition.raw_value == 'enabled'">
+                                    <i class="fa fa-key"/> Solicitar Uso
+                                </button>
+                                <button class="btn btn-secondary btn-sm w-100" disabled="1" t-else="">
+                                    <i class="fa fa-ban"/> No Disponible
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <!-- Search View -->
+    <record id="vehicle_search" model="ir.ui.view">
+        <field name="name">control.vehicle.search</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="arch" type="xml">
+            <search string="Buscar vehículos">
+                <field name="license_plate" string="Placa, marca o modelo" filter_domain="['|', '|', ('license_plate', 'ilike', self), ('model_id', 'ilike', self), ('brand_id', 'ilike', self)]"/>
+                <field name="driver_id" string="Responsable"/>
+                <field name="control_type"/>
+                <filter name="enabled" string="Habilitados para uso" domain="[('control_condition', '=', 'enabled')]"/>
+                <filter name="maintenance" string="En mantenimiento" domain="[('control_condition', '=', 'maintenance')]"/>
+                <filter name="disabled" string="Fuera de servicio" domain="[('control_condition', '=', 'disabled')]"/>
+                <separator/>
+                <filter name="has_alerts" string="Con alertas pendientes" domain="[('has_critical_alerts', '=', True)]"/>
+                <separator/>
+                <filter name="archived" string="Archivados" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="by_type" string="Tipo de vehículo" context="{'group_by': 'control_type'}"/>
+                    <filter name="by_condition" string="Condición operativa" context="{'group_by': 'control_condition'}"/>
+                    <filter name="by_driver" string="Responsable" context="{'group_by': 'driver_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <!-- Action -->
+    <record id="vehicle_action" model="ir.actions.act_window">
+        <field name="name">Vehículos</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="vehicle_search"/>
+        <field name="context">{'default_odometer_unit': 'kilometers'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Registra el primer vehículo de la empresa</p>
+            <p>Agrega su placa, modelo, kilometraje y asigna su responsable.</p>
+        </field>
+    </record>
+    <record id="vehicle_action_kanban" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="vehicle_kanban"/>
+        <field name="act_window_id" ref="vehicle_action"/>
+    </record>
+    <record id="vehicle_action_tree" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="vehicle_tree"/>
+        <field name="act_window_id" ref="vehicle_action"/>
+    </record>
+    <record id="vehicle_action_form" model="ir.actions.act_window.view">
+        <field name="sequence">3</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="vehicle_form"/>
+        <field name="act_window_id" ref="vehicle_action"/>
+    </record>
+    <!-- Action for Employees: read-only vehicle catalog -->
+    <record id="vehicle_action_readonly" model="ir.actions.act_window">
+        <field name="name">Vehículos Disponibles</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="vehicle_search"/>
+        <field name="context">{'create': False, 'edit': False, 'delete': False, 'default_odometer_unit': 'kilometers'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No hay vehículos registrados</p>
+            <p>Consulta con el administrador de flota para registrar vehículos.</p>
+        </field>
+    </record>
+    <record id="vehicle_action_readonly_kanban" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="vehicle_kanban"/>
+        <field name="act_window_id" ref="vehicle_action_readonly"/>
+    </record>
+    <record id="vehicle_action_readonly_tree" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="vehicle_tree"/>
+        <field name="act_window_id" ref="vehicle_action_readonly"/>
+    </record>
+    <record id="vehicle_action_readonly_form" model="ir.actions.act_window.view">
+        <field name="sequence">3</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="vehicle_form"/>
+        <field name="act_window_id" ref="vehicle_action_readonly"/>
+    </record>
+    <!-- Accion Masiva para Consultar ANT -->
+    <record id="action_sync_ant_multi" model="ir.actions.server">
+        <field name="name">Consultar ANT (Masivo)</field>
+        <field name="model_id" ref="fleet.model_fleet_vehicle"/>
+        <field name="binding_model_id" ref="fleet.model_fleet_vehicle"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.action_consult_ant_multi()
+        </field>
+    </record>
+</odoo>

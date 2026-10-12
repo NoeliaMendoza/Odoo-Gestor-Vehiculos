@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="access_ant_citation_manager" model="ir.model.access">
+        <field name="name">ANT: administrador de vehículos</field>
+        <field name="model_id" ref="model_control_vehicle_ant_citation"/>
+        <field name="group_id" ref="fleet.fleet_group_manager"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_ant_citation_company" model="ir.rule">
+        <field name="name">Citaciones ANT por compañía</field>
+        <field name="model_id" ref="model_control_vehicle_ant_citation"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_fine_company" model="ir.rule">
+        <field name="name">Multas por compañía</field><field name="model_id" ref="model_control_vehicle_fine"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_fine_driver" model="ir.rule">
+        <field name="name">Conductor: sólo sus multas</field><field name="model_id" ref="model_control_vehicle_fine"/>
+        <field name="groups" eval="[(4, ref('group_assignment_driver'))]"/>
+        <field name="domain_force">[('driver_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_fine_manager" model="ir.rule">
+        <field name="name">Administrador: multas de la compañía</field><field name="model_id" ref="model_control_vehicle_fine"/>
+        <field name="groups" eval="[(4, ref('fleet.fleet_group_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+</odoo>

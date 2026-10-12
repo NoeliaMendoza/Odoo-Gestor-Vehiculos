@@ -1,0 +1,23 @@
+.o_control_vehicle_form {
+    .oe_title {
+        margin-bottom: 12px;
+    }
+}
+
+// La foto llena la tarjeta a cualquier ancho y conserva sus proporciones.
+.o_control_vehicle_card_photo {
+    .o_field_image,
+    .o_field_image > div {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+    }
+
+    .o_field_image img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+}

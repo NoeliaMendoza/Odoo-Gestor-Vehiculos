@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="control_vehiculos.FormView" t-inherit="web.FormView" t-inherit-mode="primary">
+        <xpath expr="//t[@t-set-slot='control-panel-status-indicator']" position="replace">
+            <t t-set-slot="control-panel-status-indicator">
+                <div t-if="canEdit and !env.inDialog" class="d-flex flex-wrap gap-2 align-items-center">
+                    <button type="button" class="btn btn-primary" t-att-disabled="!model.root.isNew and !model.root.dirty" t-on-click.stop="() => this.saveButtonClicked()">Guardar vehículo</button>
+                    <button type="button" class="btn btn-outline-secondary" t-att-disabled="!model.root.isNew and !model.root.dirty" t-on-click.stop="discard">Descartar cambios</button>
+                </div>
+            </t>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates xml:space="preserve">
+    <t t-name="control_vehiculos.FuelGauge">
+        <div class="o_vehicle_fuel" t-att-class="{ 'is-low': low, 'is-set': hasValue }">
+            <div class="o_fuel_heading">
+                <span>Nivel observado</span>
+                <span class="o_fuel_value" t-esc="hasValue ? value + ' %' : 'Sin registrar'"/>
+            </div>
+            <svg viewBox="0 0 280 165" class="o_fuel_dial" role="img" t-att-aria-label="hasValue ? 'Combustible: ' + value + ' por ciento' : 'Combustible sin registrar'">
+                <path d="M 35 130 A 105 105 0 0 1 245 130" class="o_fuel_track"/>
+                <path d="M 35 130 A 105 105 0 0 1 140 25" class="o_fuel_low_arc"/>
+                <path d="M 140 25 A 105 105 0 0 1 245 130" class="o_fuel_safe_arc"/>
+                <g class="o_fuel_ticks">
+                    <path d="M35 130h12 M66 56l9 9 M140 25v13 M214 56l-9 9 M245 130h-12"/>
+                </g>
+                <text x="18" y="155">0 %</text>
+                <text x="240" y="155">100 %</text>
+                <text x="140" y="14" text-anchor="middle">50 %</text>
+                <g transform="translate(128 69)" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">
+                    <path d="M0 28V0h19v28 M-3 28h25 M3 5h13v9H3z M19 13h4q4 0 4 5v5q0 5 4 5t4-5V8l-6-6 M30 3v9h5"/>
+                </g>
+                <g t-if="hasValue" t-att-transform="rotation" class="o_fuel_needle">
+                    <path d="M140 124 L48 130 L140 136 Z"/>
+                    <circle cx="140" cy="130" r="7"/>
+                </g>
+                <circle t-else="" cx="140" cy="130" r="5" fill="#94a3b8"/>
+            </svg>
+            <div class="o_fuel_controls" t-if="!props.readonly">
+                <div class="o_fuel_exact_row">
+                    <span>Porcentaje observado</span>
+                    <div class="o_fuel_exact">
+                        <input type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Porcentaje de combustible observado" t-att-aria-invalid="state.error ? 'true' : 'false'" t-att-value="hasValue ? value : ''" t-on-change="onNumberChange"/>
+                        <span>%</span>
+                    </div>
+                </div>
+                <input type="range" class="o_fuel_range" min="0" max="100" step="1" aria-label="Ajustar nivel de combustible" t-att-value="hasValue ? value : 0" t-att-aria-valuetext="hasValue ? value + ' por ciento' : 'Sin registrar'" t-on-input="onRangeInput" t-on-change="onRangeInput"/>
+                <div class="o_fuel_scale">
+                    <span>Vacío</span>
+                    <span>Medio tanque</span>
+                    <span>Lleno</span>
+                </div>
+                <div class="o_fuel_presets" role="group" aria-label="Niveles rápidos de combustible">
+                    <button t-foreach="choices" t-as="level" t-key="level" type="button" t-att-class="{selected: hasValue and value == level}" t-att-aria-pressed="hasValue and value == level ? 'true' : 'false'" t-on-click="() =&gt; this.select(level)">
+                        <t t-esc="level"/> %</button>
+                </div>
+                <div t-if="state.error" class="o_fuel_error" role="alert" t-esc="state.error"/>
+            </div>
+            <div class="o_fuel_feedback mt-2" role="status" aria-live="polite">
+                <t t-if="!hasValue">
+                    <i class="fa fa-hand-pointer-o me-1"/> Ajusta la barra al nivel observado.</t>
+                <t t-elif="low and checkout">
+                    <i class="fa fa-exclamation-triangle me-1"/> Agrega combustible hasta medio tanque para confirmar la entrega.</t>
+                <t t-elif="low">
+                    <i class="fa fa-exclamation-triangle me-1"/> Regreso por debajo del mínimo. Puedes registrar este nivel real.</t>
+                <t t-else="">Nivel seleccionado: cumple el mínimo de medio tanque.</t>
+            </div>
+        </div>
+    </t>
+</templates>

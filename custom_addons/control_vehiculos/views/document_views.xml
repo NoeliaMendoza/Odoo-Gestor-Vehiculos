@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vehicle_document_tree" model="ir.ui.view">
+        <field name="name">control.vehicle.document.tree</field>
+        <field name="model">control.vehicle.document</field>
+        <field name="arch" type="xml">
+            <list expand="1" string="Documentos de Vehículos" decoration-danger="state == 'expired'" decoration-warning="state == 'expiring'" decoration-success="state == 'valid'">
+                <field name="document_type" widget="badge"/>
+                <field name="name"/>
+                <field name="issue_date"/>
+                <field name="expiration_date"/>
+                <field name="days_to_expire" string="Días restantes"/>
+                <field name="state" widget="badge" decoration-success="state == 'valid'" decoration-warning="state == 'expiring'" decoration-danger="state == 'expired'"/>
+                <field name="file_name" invisible="1"/>
+                <field name="document_file" widget="binary" filename="file_name" string="Archivo"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vehicle_document_form" model="ir.ui.view">
+        <field name="name">control.vehicle.document.form</field>
+        <field name="model">control.vehicle.document</field>
+        <field name="arch" type="xml">
+            <form string="Documento del Vehículo">
+                <sheet>
+                    <div class="alert alert-danger mb-3" role="status" invisible="state != 'expired'">
+                        <strong>Documento Vencido:</strong> Este documento ha expirado. Por favor, actualiza la fecha de emisión/vencimiento y adjunta el nuevo archivo.
+                    </div>
+                    <div class="alert alert-warning mb-3" role="status" invisible="state != 'expiring'">
+                        <strong>Documento Por Vencer:</strong> Faltan solo <field name="days_to_expire" readonly="1"/> días para el vencimiento.
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Número / Título del documento"/>
+                        <h1><field name="name" placeholder="Ej.: MAT-2026-9948 / Póliza de Seguro Seguros S.A."/></h1>
+                    </div>
+                    <group>
+                        <group string="Clasificación y Vigencia">
+                            <field name="vehicle_id" options="{'no_create': True}"/>
+                            <field name="document_type"/>
+                            <field name="issue_date"/>
+                            <field name="expiration_date"/>
+                            <field name="days_to_expire"/>
+                            <field name="state" widget="badge" decoration-success="state == 'valid'" decoration-warning="state == 'expiring'" decoration-danger="state == 'expired'"/>
+                        </group>
+                        <group string="Archivo y Costo">
+                            <field name="file_name" invisible="1"/>
+                            <field name="document_file" widget="binary" filename="file_name" string="Subir documento"/>
+                            <field name="cost" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="company_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Observaciones">
+                        <field name="notes" placeholder="Detalles de renovación, aseguradora, cobertura…"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vehicle_document" model="ir.actions.act_window">
+        <field name="name">Documentos</field>
+        <field name="res_model">control.vehicle.document</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

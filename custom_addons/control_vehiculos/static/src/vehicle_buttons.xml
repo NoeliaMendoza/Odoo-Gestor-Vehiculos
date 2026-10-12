@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="control_vehiculos.ListView.Buttons" t-inherit="web.ListView.Buttons" t-inherit-mode="primary">
+        <xpath expr="//div" position="inside">
+            <button type="button" class="btn btn-secondary ms-2" t-on-click="openCalendar">
+                <i class="fa fa-calendar me-1"/> Agenda Semanal
+            </button>
+        </xpath>
+    </t>
+
+    <t t-name="control_vehiculos.KanbanView.Buttons" t-inherit="web.KanbanView.Buttons" t-inherit-mode="primary">
+        <xpath expr="//div" position="inside">
+            <button type="button" class="btn btn-secondary ms-2" t-on-click="openCalendar">
+                <i class="fa fa-calendar me-1"/> Agenda Semanal
+            </button>
+        </xpath>
+    </t>
+</templates>

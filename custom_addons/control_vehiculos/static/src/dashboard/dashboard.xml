@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="control_vehiculos.Dashboard">
+        <div class="o_fleet_calendar d-flex flex-column h-100 overflow-auto bg-view">
+            <!-- Header Principal -->
+            <div class="o_control_panel d-flex justify-content-between align-items-center px-4 py-3 border-bottom flex-shrink-0 bg-white sticky-top">
+                <div class="d-flex align-items-center gap-3">
+                    <h1 class="display-6 fs-3 m-0 fw-bold text-dark">Disponibilidad Semanal</h1>
+                </div>
+                <div class="d-flex gap-2">
+                    <div class="btn-group shadow-sm me-2">
+                        <button type="button" class="btn btn-light border" title="Semana anterior" t-att-disabled="state.loading" t-on-click="() => this.changePeriod(-1)"><i class="fa fa-chevron-left" aria-hidden="true"/></button>
+                        <button type="button" class="btn btn-light border fw-bold text-dark px-3" t-att-disabled="state.loading" t-on-click="goToday">Hoy</button>
+                        <button type="button" class="btn btn-light border" title="Semana siguiente" t-att-disabled="state.loading" t-on-click="() => this.changePeriod(1)"><i class="fa fa-chevron-right" aria-hidden="true"/></button>
+                    </div>
+                    <button type="button" class="btn btn-primary shadow-sm" t-on-click="() => this.loadData()" t-att-disabled="state.loading">
+                        <i class="fa fa-refresh me-1" aria-hidden="true"/> Actualizar
+                    </button>
+                </div>
+            </div>
+
+            <div class="container-fluid py-4 flex-grow-1 d-flex flex-column" aria-label="Calendario" t-att-aria-busy="state.loading ? 'true' : 'false'">
+
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+                    <h2 class="m-0 fs-5 fw-bold text-muted" t-esc="periodLabel"/>
+                    <div class="d-flex flex-wrap gap-3 align-items-center py-2 px-3 bg-white border rounded shadow-sm small text-muted">
+                        <span class="fw-bold text-dark border-end pe-3"><t t-esc="state.vehicles.length"/> vehículos</span>
+                        <span><i class="fc-dot free me-1"/> Disponible</span>
+                        <span><i class="fc-dot reserved me-1"/> Reservado</span>
+                        <span><i class="fc-dot maintenance me-1"/> Mantenimiento</span>
+                    </div>
+                </div>
+
+                <div t-if="state.error" class="alert alert-danger shadow-sm mb-4" role="alert">
+                    <i class="fa fa-exclamation-circle me-2" aria-hidden="true"/><span t-esc="state.error"/>
+                </div>
+
+                <div t-if="state.loading and !state.vehicles.length" class="text-center text-muted py-5">
+                    <i class="fa fa-circle-o-notch fa-spin fa-2x mb-2" aria-hidden="true"/>
+                    <p>Consultando vehículos y horarios…</p>
+                </div>
+
+                <t t-if="state.vehicles.length">
+                    <div class="card shadow-sm border-0 mb-4 bg-white" t-att-style="state.loading ? 'opacity: 0.6; pointer-events: none;' : ''">
+                        <div class="fc-week">
+                            <div class="fc-week-head bg-light">
+                                <div class="p-3 fw-bold align-self-center border-end text-muted small">VEHÍCULO</div>
+                                <div class="fc-day-headers">
+                                    <button t-foreach="days" t-as="day" t-key="day.key" type="button" t-on-click="() => this.selectDay(day.key)" t-attf-class="d-flex flex-column align-items-center justify-content-center py-2 {{ day.selected ? 'selected' : '' }} {{ day.today ? 'today' : '' }}">
+                                        <span t-attf-class="small fw-bold text-uppercase {{ day.selected ? 'text-white' : 'text-muted' }}" t-esc="day.label"/>
+                                        <strong class="fs-5" t-esc="day.number"/>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="fc-vehicle-row border-top" t-foreach="state.vehicles" t-as="vehicle" t-key="vehicle.id">
+                                <div class="p-3 border-end d-flex align-items-center gap-2 text-truncate bg-light">
+                                    <img t-if="vehicle.has_photo" t-att-src="photoUrl(vehicle)" class="rounded" style="width: 32px; height: 32px; object-fit: cover;" alt=""/>
+                                    <div class="d-flex flex-column min-w-0">
+                                        <strong class="small text-dark text-truncate" t-esc="vehicle.name"/>
+                                        <span class="text-muted" style="font-size: 0.7rem" t-esc="vehicle.plate"/>
+                                    </div>
+                                </div>
+                                <t t-set="track" t-value="timeline(vehicle)"/>
+                                <div class="fc-track" t-att-style="'min-height:' + track.height">
+                                    <div class="fc-track-days">
+                                        <button t-foreach="days" t-as="day" t-key="day.key" type="button" t-on-click="() => this.selectDay(day.key)" t-attf-class="{{ day.selected ? 'selected' : '' }}"/>
+                                    </div>
+                                    <div t-if="track.events.length" class="fc-event-lanes">
+                                        <button t-foreach="track.events" t-as="event" t-key="event.key" type="button" t-attf-class="fc-event #{event.kind} shadow-sm" t-att-style="event.style" t-att-title="getEventLabel(event)" t-on-click="() => this.openEvent(event)">
+                                            <strong class="d-block text-truncate" style="font-size: 0.75rem" t-esc="event.title"/>
+                                            <span class="d-block text-truncate" style="font-size: 0.65rem" t-esc="eventTime(event)"/>
+                                        </button>
+                                    </div>
+                                    <div t-else="" class="position-absolute inset-0 d-flex align-items-center justify-content-center text-muted opacity-25" style="inset: 0;">
+                                        <i class="fa fa-car me-2"/> Sin reservas
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

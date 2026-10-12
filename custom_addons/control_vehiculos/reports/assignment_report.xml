@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- HTML y Word usan _get_document_data: no duplicar aquí reglas ni cifras. -->
+    <template id="vehicle_document_body">
+        <style>
+            .fleet-document { font-family: Arial, sans-serif; color: #243746; font-size: 11pt; line-height: 1.4; max-width: 820px; margin: 28px auto; padding: 32px; background: white; }
+            .fleet-document * { box-sizing: border-box; }
+            .fleet-document .document-brand { font-size: 10pt; letter-spacing: .07em; border-bottom: 2px solid #243746; padding-bottom: 12px; margin-bottom: 24px; }
+            .fleet-document .document-logo { width: 230px; height: auto; display: block; margin-bottom: 12px; }
+            .fleet-document .document-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin: 0; }
+            .fleet-document .document-fields > div { break-inside: avoid; min-width: 0; }
+            .fleet-document dt { font-size: 9pt; color: #627180; font-weight: 700; margin-bottom: 3px; }
+            .fleet-document dd { margin: 0; }
+            .fleet-document .document-gauges { display: flex; gap: 16px; margin-top: 16px; break-inside: avoid; }
+            .fleet-document .document-gauge { flex: 1; max-width: 350px; min-width: 0; margin: 0; }
+            .fleet-document .document-gauge img { display: block; width: 100%; height: auto; }
+            .fleet-document figcaption { font-weight: 700; font-size: 10pt; }
+            .fleet-document h1 { font-size: 24pt; line-height: 1.15; margin: 0 0 6px; font-weight: 700; }
+            .fleet-document .document-subtitle { color: #627180; margin-bottom: 16px; }
+            .fleet-document .document-meta { padding: 12px 0; border-top: 1px solid #dce2e7; border-bottom: 1px solid #dce2e7; }
+            .fleet-document .document-small { font-size: 9pt; color: #627180; }
+            .fleet-document h2 { font-size: 12pt; margin: 24px 0 10px; font-weight: 700; break-after: avoid; }
+            .fleet-document table { width: 100%; border-collapse: collapse; margin-bottom: 10px; table-layout: fixed; }
+            .fleet-document th, .fleet-document td { padding: 8px 10px; border: 1px solid #dce2e7; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+            .fleet-document .document-value { white-space: pre-wrap; }
+            .fleet-document th { background: #eef2f5; font-weight: 700; }
+            .fleet-document tr { break-inside: avoid; }
+            .fleet-document thead { display: table-header-group; }
+            .fleet-document .document-label { width: 32%; font-weight: 700; background: #f8fafb; }
+            .fleet-document p { white-space: pre-wrap; overflow-wrap: anywhere; }
+            .fleet-document .document-alert { padding: 10px 12px; border-left: 3px solid #b77a20; background: #fff6e6; margin-top: 12px; }
+            .fleet-document .document-signatures { break-inside: avoid; margin-top: 24px; }
+            .fleet-document .document-signatures td { width: 50%; border: 0; padding: 0 20px 0 0; }
+            .fleet-document .signature-line { margin-top: 65px; border-top: 1px solid #536575; padding-top: 8px; }
+            .fleet-document footer { border-top: 1px solid #dce2e7; margin-top: 28px; padding-top: 10px; }
+            .fleet-document .document-tools { margin-bottom: 20px; display: flex; gap: 10px; }
+            @page { size: A4; margin: 16mm 18mm; }
+            @media print { .fleet-document { max-width: none; margin: 0; padding: 0; font-size: 10pt; } .fleet-document .document-tools { display: none; } }
+            @media screen and (max-width: 600px) { .fleet-document .document-fields { grid-template-columns: 1fr; } .fleet-document .document-gauges { flex-direction: column; } .fleet-document { padding: 14px; margin: 0; font-size: 10pt; } .fleet-document h1 { font-size: 20pt; } .fleet-document td, .fleet-document th { padding: 6px; } }
+        </style>
+        <article class="fleet-document">
+            <div class="document-tools">
+                <button type="button" class="btn btn-primary" onclick="window.print()">Imprimir / guardar PDF</button>
+                <a class="btn btn-secondary" t-att-href="'/control_vehiculos/documento/%s/%s' % (o.id, data['kind'])">Descargar Word</a>
+            </div>
+            <div class="document-brand"><img class="document-logo" t-att-src="'data:image/png;base64,' + data['logo']" alt="Sheyla Software"/>CONTROL DE VEHÍCULOS</div>
+            <h1 t-out="data['title']"/>
+            <p class="document-subtitle" t-out="data['subtitle']"/>
+            <div class="document-meta"><strong t-out="data['folio']"/> · Estado: <span t-out="data['state']"/></div>
+            <p class="document-small">Emitido: <span t-out="data['generated']"/> · Hora: <span t-out="data['timezone']"/></p>
+            <div t-foreach="data['alerts']" t-as="alert" class="document-alert" t-out="alert"/>
+            <section t-foreach="data['sections']" t-as="section">
+                <h2 t-out="section['title']"/>
+                <table t-if="section['rows'] and section['headers']">
+                    <thead t-if="section['headers']"><tr><th t-foreach="section['headers']" t-as="heading" t-out="heading"/></tr></thead>
+                    <tbody><tr t-foreach="section['rows']" t-as="row"><td t-foreach="row" t-as="cell" t-att-class="'document-label' if not section['headers'] and cell_index == 0 else ''" ><span class="document-value" t-out="cell or '—'"/></td></tr></tbody>
+                </table>
+                <dl t-if="section['rows'] and not section['headers']" class="document-fields">
+                    <div t-foreach="section['rows']" t-as="row"><dt t-out="row[0]"/><dd class="document-value" t-out="row[1] or '—'"/></div>
+                </dl>
+                <div t-if="section['gauges']" class="document-gauges">
+                    <figure t-foreach="section['gauges']" t-as="gauge" class="document-gauge">
+                        <figcaption t-out="gauge['label']"/>
+                        <img t-att-src="'data:image/png;base64,' + gauge['image']" t-att-alt="gauge['label'] + ': ' + gauge['description']"/>
+                        <p t-if="gauge['low']" class="document-alert">Por debajo del mínimo requerido.</p>
+                    </figure>
+                </div>
+                <p t-foreach="section['paragraphs']" t-as="paragraph" t-out="paragraph"/>
+            </section>
+            <section class="document-signatures">
+                <h2>Firmas de constancia</h2>
+                <p t-out="data['statement']"/>
+                <table><tr><td t-foreach="data['signatures']" t-as="signature">
+                    <div class="signature-line"><strong t-out="signature[1]"/></div>
+                    <div t-out="signature[0]"/>
+                    <p class="document-small">Fecha: ____________________</p>
+                </td></tr></table>
+            </section>
+            <footer class="document-small"><span t-out="data['folio']"/> · Documento de control interno · Completar las firmas después de revisar el contenido.</footer>
+        </article>
+    </template>
+    <template id="assignment_report">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="o">
+            <t t-set="data" t-value="o._get_document_data('reporte')"/>
+            <t t-call="control_vehiculos.vehicle_document_body"/>
+        </t></t>
+    </template>
+    <template id="commitment_original_body">
+        <style>
+            .commitment-original { font-family: Calibri, Arial, sans-serif; font-size: 12pt; line-height: 1.25; box-sizing: border-box; display: flex; flex-direction: column; min-height: 279.4mm; max-width: 215.9mm; margin: 24px auto; padding: 20.32mm; color: black; background: white; }
+            .commitment-original .original-logo { width: 260px; height: auto; }
+            .commitment-original p { margin: 0 0 12.5pt; }
+            .commitment-original .original-list { display: list-item; list-style-type: decimal; margin-left: 26px; }
+            .commitment-original .original-signatures { display: flex; gap: 30px; margin-top: 50px; }
+            .commitment-original .original-signatures > div { flex: 1; border-top: 1px solid black; padding-top: 8px; }
+            .commitment-original .document-signatures { break-inside: avoid; flex-shrink: 0; margin-top: auto; padding-top: 24px; }
+            .commitment-original .original-date { text-align: right; font-size: 11pt; margin-bottom: 0; }
+            .commitment-original .original-signatures { text-align: center; }
+            .commitment-original .original-content { flex-shrink: 0; }
+            .commitment-original .document-tools { display: flex; gap: 10px; margin-bottom: 24px; }
+            @page { size: Letter; margin: 20.32mm; }
+            @media print { .commitment-original { margin: 0; padding: 0; max-width: none; min-height: 238.76mm; } .commitment-original .document-tools { display: none; } }
+            @media screen and (max-width: 600px) { .commitment-original { margin: 0; padding: 14px; min-height: 100vh; } }
+        </style>
+        <article class="commitment-original">
+            <div class="document-tools">
+                <button type="button" class="btn btn-primary" onclick="window.print()">Imprimir / guardar PDF</button>
+                <a class="btn btn-secondary" t-att-href="'/control_vehiculos/documento/%s/compromiso' % o.id">Descargar Word</a>
+            </div>
+            <div class="original-content">
+            <p><img class="original-logo" t-att-src="'data:image/png;base64,' + data['logo']" alt="Sheyla Software"/></p>
+            <p t-foreach="data['paragraphs']" t-as="paragraph"
+               t-att-class="'original-list' if paragraph['listed'] else ''"
+               t-att-style="'text-align: center' if paragraph['center'] else ''">
+                <t t-foreach="paragraph['runs']" t-as="run"><span t-att-style="'font-size: %spt; font-weight: %s' % (run['size'], 'bold' if run['bold'] else 'normal')" t-out="run['text']"/></t>
+            </p>
+            </div>
+            <div class="document-signatures">
+                <p class="original-date" t-out="data['date_label']"/>
+                <div class="original-signatures"><div t-foreach="data['signatures']" t-as="signature">
+                    <strong t-out="signature[1]"/><br/><span t-out="signature[0]"/>
+                </div></div>
+            </div>
+        </article>
+    </template>
+    <template id="commitment_report">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="o">
+            <t t-set="data" t-value="o._get_document_data('compromiso')"/>
+            <t t-call="control_vehiculos.commitment_original_body"/>
+        </t></t>
+    </template>
+    <record id="assignment_report_action" model="ir.actions.report">
+        <field name="name">Reporte de uso · vista para imprimir</field>
+        <field name="model">control.vehicle.assignment</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">control_vehiculos.assignment_report</field>
+        <field name="print_report_name">'Reporte_uso_' + (object.name or '').replace('/','_')</field>
+        <field name="binding_model_id" ref="model_control_vehicle_assignment"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[(6, 0, [ref('fleet.fleet_group_manager')])]"/>
+    </record>
+    <record id="commitment_report_action" model="ir.actions.report">
+        <field name="name">Acta de compromiso · vista para imprimir</field>
+        <field name="model">control.vehicle.assignment</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">control_vehiculos.commitment_report</field>
+        <field name="print_report_name">'Acta_compromiso_' + (object.name or '').replace('/','_')</field>
+        <field name="binding_model_id" ref="model_control_vehicle_assignment"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[(6, 0, [ref('fleet.fleet_group_manager')])]"/>
+    </record>
+</odoo>

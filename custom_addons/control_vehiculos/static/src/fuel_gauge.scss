@@ -1,0 +1,193 @@
+.o_field_vehicle_fuel_gauge {
+    width: 100%;
+    min-width: 0;
+}
+.o_vehicle_fuel {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 440px;
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid #dce3eb;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #334155;
+    .o_fuel_heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        font-size: 13px;
+    }
+    .o_fuel_value {
+        font-weight: 700;
+        font-size: 24px;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+    .o_fuel_dial {
+        display: block;
+        width: 100%;
+        max-width: 245px;
+        height: auto;
+        margin: 16px auto 8px;
+        overflow: visible;
+    }
+    .o_fuel_dial text {
+        font: 600 12px sans-serif;
+        fill: #64748b;
+    }
+    .o_fuel_track,
+    .o_fuel_low_arc,
+    .o_fuel_safe_arc {
+        fill: none;
+        stroke-width: 12px;
+    }
+    .o_fuel_track {
+        stroke: #e2e8f0;
+    }
+    .o_fuel_low_arc {
+        stroke: #fee2e2;
+    }
+    .o_fuel_safe_arc {
+        stroke: #dcfce7;
+    }
+    .o_fuel_ticks {
+        fill: none;
+        stroke: #64748b;
+        stroke-width: 3px;
+    }
+    .o_fuel_needle {
+        fill: #334155;
+        transition: transform 180ms ease;
+    }
+    .o_fuel_controls {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    .o_fuel_exact_row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        margin: 12px 0;
+    }
+    .o_fuel_exact {
+        display: flex;
+        align-items: center;
+        border: 1px solid #b9c4d0;
+        border-radius: 7px;
+        padding-right: 12px;
+        background: #fff;
+    }
+    .o_fuel_exact:focus-within {
+        outline: 2px solid #71639e;
+        outline-offset: 2px;
+    }
+    .o_fuel_exact input {
+        box-sizing: border-box;
+        width: 82px;
+        min-width: 0;
+        min-height: 44px;
+        padding: 8px 10px;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #243447;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    .o_fuel_range {
+        display: block;
+        width: 100%;
+        height: 36px;
+        margin: 0;
+        padding: 0;
+        accent-color: #71639e;
+        cursor: pointer;
+    }
+    .o_fuel_scale {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #64748b;
+        margin-bottom: 16px;
+    }
+    .o_fuel_presets {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 6px;
+        width: 100%;
+    }
+    .o_fuel_presets button {
+        box-sizing: border-box;
+        min-width: 0;
+        min-height: 44px;
+        border: 1px solid #dce3eb;
+        border-radius: 7px;
+        padding: 8px 0;
+        background: white;
+        color: #334155;
+        font: inherit;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    .o_fuel_presets button:hover {
+        background: #f4f2f8;
+    }
+    .o_fuel_presets button.selected {
+        border: 2px solid #71639e;
+        background: #f4f2f8;
+        font-weight: 700;
+    }
+    button:focus-visible,
+    .o_fuel_range:focus-visible {
+        outline: 2px solid #71639e;
+        outline-offset: 3px;
+    }
+    .o_fuel_feedback {
+        margin-top: 16px;
+        padding: 10px 12px;
+        border-radius: 6px;
+        background: #f1f5f9;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+    &.is-set .o_fuel_feedback {
+        background: #edf8f1;
+        color: #166534;
+    }
+    &.is-low {
+        .o_fuel_value,
+        .o_fuel_feedback {
+            color: #a12622;
+        }
+        .o_fuel_feedback {
+            background: #fff1f0;
+        }
+        .o_fuel_needle {
+            fill: #b42318;
+        }
+    }
+    .o_fuel_error {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #b42318;
+    }
+    @media (max-width: 400px) {
+        padding: 12px;
+        .o_fuel_presets {
+            gap: 4px;
+        }
+        .o_fuel_presets button {
+            font-size: 12px;
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .o_fuel_needle {
+            transition: none;
+        }
+    }
+}

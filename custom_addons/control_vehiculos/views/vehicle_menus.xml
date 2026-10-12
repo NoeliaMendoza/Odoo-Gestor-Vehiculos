@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Top level menu: visible for all internal users -->
+    <menuitem id="menu_control" name="Gestión de Vehículos" sequence="20" groups="base.group_user" web_icon="control_vehiculos,static/description/icon.png"/>
+
+    <!-- ========================================= -->
+    <!-- MENUS PARA TODOS (Empleados + Admins)     -->
+    <!-- ========================================= -->
+
+    <!-- Vehículos: empleados ven solo lectura -->
+    <menuitem id="menu_vehicles_employee" name="Vehículos" parent="menu_control" action="vehicle_action_readonly" sequence="10" groups="control_vehiculos.group_assignment_driver"/>
+
+    <!-- Mis Solicitudes: empleado solo ve las suyas -->
+    <menuitem id="menu_my_requests" name="Mis Solicitudes" parent="menu_control" action="action_my_requests" sequence="20" groups="control_vehiculos.group_assignment_driver"/>
+
+    <!-- ========================================= -->
+    <!-- MENUS SOLO PARA ADMINISTRADOR DE FLOTA    -->
+    <!-- ========================================= -->
+
+    <!-- Vehículos admin (CRUD nativo) -->
+    <menuitem id="menu_vehicles" name="Vehículos" parent="menu_control" action="vehicle_action" sequence="10" groups="fleet.fleet_group_manager"/>
+
+    <!-- Calendario Action -->
+    <record id="action_fleet_dashboard_calendar" model="ir.actions.act_window">
+        <field name="name">Calendario</field>
+        <field name="res_model">control.vehicle.assignment</field>
+        <field name="view_mode">calendar,list,kanban,form</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Botón / Submenú de Calendario -->
+    <menuitem id="menu_fleet_dashboard" name="Calendario" parent="menu_control" action="action_fleet_dashboard_calendar" sequence="15" groups="fleet.fleet_group_manager,control_vehiculos.group_assignment_driver"/>
+
+    <!-- Aprobaciones: admin ve todas -->
+    <menuitem id="menu_vehicle_usage" name="Solicitudes" parent="menu_control" action="action_vehicle_usage" sequence="20" groups="fleet.fleet_group_manager"/>
+
+    <!-- Mantenimiento: solo admin -->
+    <menuitem id="menu_maintenance" name="Mantenimiento" parent="menu_control" action="action_vehicle_maintenance" sequence="30" groups="fleet.fleet_group_manager"/>
+
+    <!-- Documentos: solo admin -->
+    <menuitem id="menu_documents" name="Documentos" parent="menu_control" action="action_vehicle_document" sequence="40" groups="fleet.fleet_group_manager"/>
+
+
+    <menuitem id="menu_fines" name="Multas" parent="menu_control" action="action_vehicle_fine" sequence="35" groups="fleet.fleet_group_manager"/>
+</odoo>

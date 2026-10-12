@@ -1,0 +1,30 @@
+# Entorno y configuración privada
+.env
+.env.*
+!.env.example
+odoo.conf
+.venv/
+venv/
+odoo-source/
+__pycache__/
+*.py[cod]
+*.log
+*.egg-info/
+.pytest_cache/
+.vscode/
+.idea/
+# Exportaciones y datos locales
+*.pdf
+*.sql
+*.dump
+*.zip
+filestore/
+# Documentos: conservar únicamente la plantilla requerida
+*.docx
+!custom_addons/control_vehiculos/data/commitment_template.docx
+# Utilidades temporales
+fix*.py
+check*.py
+temp_*
+drop_cols.py
+upgrade_rpc.py

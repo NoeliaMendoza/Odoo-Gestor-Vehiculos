@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="control_vehiculos.PermissionList" t-inherit="web.ListView" t-inherit-mode="primary">
+        <xpath expr="//button[hasclass('o_list_button_add')]" position="replace">
+            <button type="button" class="btn btn-primary o_list_button_add" data-hotkey="c" t-on-click="onClickCreate">Nuevo Permiso</button>
+        </xpath>
+    </t>
+    <t t-name="control_vehiculos.PermissionForm" t-inherit="web.FormView" t-inherit-mode="primary">
+        <xpath expr="//button[hasclass('o_form_button_create')]" position="replace">
+            <button type="button" class="btn btn-outline-primary o_form_button_create" data-hotkey="c" t-on-click.stop="create">Nuevo Permiso</button>
+        </xpath>
+    </t>
+</templates>
